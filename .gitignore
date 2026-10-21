@@ -49,3 +49,11 @@ coverage.xml
 *.cover
 .hypothesis/
 .pytest_cache/
+
+# React Frontend
+truck_routing_frontend/node_modules/
+
+# Environment Variables for React Frontend
+truck_routing_frontend/.env
+truck_routing_frontend/.env.local
+truck_routing_frontend/.env.*.local

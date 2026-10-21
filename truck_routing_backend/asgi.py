@@ -1,5 +1,5 @@
 """
-ASGI config for trouck_routing project.
+ASGI config for truck_routing_backend project.
 
 It exposes the ASGI callable as a module-level variable named ``application``.
 
@@ -11,6 +11,6 @@ import os
 
 from django.core.asgi import get_asgi_application
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'trouck_routing.settings')
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'truck_routing_backend.settings')
 
 application = get_asgi_application()

@@ -1,0 +1,101 @@
+:root {
+  --primary-color: #0f172a; 
+  --primary-hover: #1e293b;
+  --bg-input: #f8fafc;
+  --border-color: #e2e8f0;
+  --text-main: #334155;
+  --text-muted: #64748b;
+  --accent-glow: rgba(15, 23, 42, 0.08);
+}
+
+.sidebar-form {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  font-family: system-ui, -apple-system, sans-serif;
+  color: var(--text-main);
+  padding: 2rem;
+}
+
+.form-header h2 {
+  font-size: 1.35rem;
+  font-weight: 600;
+  margin: 0 0 6px 0;
+  color: var(--primary-color);
+  letter-spacing: -0.02em;
+}
+
+.form-header p {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.form-group label {
+  font-size: 0.8rem;
+  font-weight: 550;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+}
+
+.form-group input {
+  width: 100%;
+  padding: 12px 16px;
+  font-size: 0.95rem;
+  background-color: var(--bg-input);
+  border: 1px solid var(--border-color);
+  border-radius: 12px; /* Margini rotunjite moderne */
+  color: var(--primary-color);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); /* Animație smooth */
+  outline: none;
+}
+
+/* Micro-interacțiuni pentru stările de focus și hover */
+.form-group input:hover {
+  border-color: #cbd5e1;
+}
+
+.form-group input:focus {
+  border-color: var(--primary-color);
+  background-color: #ffffff;
+  box-shadow: 0 0 0 4px var(--accent-glow);
+}
+
+/* Personalizare discretă pentru input-ul de tip dată */
+.form-group input[type="datetime-local"] {
+  font-family: inherit;
+  cursor: pointer;
+}
+
+/* Butonul de trimitere */
+.submit-btn {
+  margin-top: 8px;
+  padding: 14px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #ffffff;
+  background-color: var(--primary-color);
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.15);
+}
+
+.submit-btn:hover {
+  background-color: var(--primary-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(15, 23, 42, 0.2);
+}
+
+.submit-btn:active {
+  transform: translateY(1px);
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.1);
+}

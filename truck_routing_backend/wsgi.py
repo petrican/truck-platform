@@ -1,5 +1,5 @@
 """
-WSGI config for trouck_routing project.
+WSGI config for truck_routing_backend project.
 
 It exposes the WSGI callable as a module-level variable named ``application``.
 
@@ -11,6 +11,6 @@ import os
 
 from django.core.wsgi import get_wsgi_application
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'trouck_routing.settings')
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'truck_routing_backend.settings')
 
 application = get_wsgi_application()
