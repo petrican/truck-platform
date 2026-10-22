@@ -18,7 +18,7 @@ function App() {
   const [error, setError] = useState<string | null>(null);
 
   const [formData, setFormData] = useState<ShipmentFormData>({
-    origin: 'Berlin, DE',
+    origin: 'Bucharest, RO',
     destination: 'Munich, DE',
     departureTime: getDefaultDateTime(),
     weight: '24000',
@@ -32,7 +32,7 @@ function App() {
     departureTime: string;
     loadWeightLbs: number;
   }>({
-    origin: 'Berlin, DE',
+    origin: 'Bucharest, RO',
     destination: 'Munich, DE',
     departureTime: '',
     loadWeightLbs: 24000,

@@ -233,17 +233,6 @@ export const RouteDisplay: React.FC<RouteDisplayProps> = ({
             <span className="routes-avail-tag">{routes.length} Trajectories Available</span>
           </div>
         </div>
-
-        <div className="corridor-actions">
-          <button type="button" className="action-pill-btn" onClick={handleCopySummary} title="Copy summary">
-            {copied ? <Check size={14} className="text-emerald" /> : <Copy size={14} />}
-            <span>{copied ? 'Copied' : 'Share'}</span>
-          </button>
-          <button type="button" className="action-pill-btn" onClick={handleExportJson} title="Export Manifest JSON">
-            <Download size={14} />
-            <span>Export Manifest</span>
-          </button>
-        </div>
       </div>
 
       {/* Routes Cards Deck - The Routes given from the backend rendered prominently on the right */}

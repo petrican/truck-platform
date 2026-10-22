@@ -68,12 +68,8 @@ export default function SidebarForm({
   return (
     <form className="sidebar-form" onSubmit={handleSubmit}>
       <div className="form-header">
-        <div className="form-title-badge">
-          <Truck size={15} />
-          <span>Freight Dispatch</span>
-        </div>
         <h2>New Shipment</h2>
-        <p>Enter transit geometry & cargo metrics</p>
+        <p></p>
       </div>
 
       <div className="form-group">

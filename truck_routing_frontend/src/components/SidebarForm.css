@@ -106,13 +106,14 @@
 }
 
 .sampling-group {
-  width: 105px;
+  width: 120px;
   flex-shrink: 0;
 }
 
 .input-with-unit {
   display: flex;
   position: relative;
+  max-width:175px;
 }
 
 .input-with-unit input {

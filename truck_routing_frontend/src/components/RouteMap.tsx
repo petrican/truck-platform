@@ -228,7 +228,7 @@ export const RouteMap: React.FC<RouteMapProps> = ({
       <div className="route-map-inner" ref={mapContainerRef} />
       <div className="map-glass-badge">
         <span className="live-dot" />
-        <span>OSRM Live Waypoints & Weather Risk Layer (2026 Engine)</span>
+        <span>OSRM Live Waypoints & Weather Risk</span>
       </div>
     </div>
   );
