@@ -36,10 +36,10 @@ export default function SidebarForm({
   });
 
   const presets = [
-    { origin: 'Berlin, DE', destination: 'Munich, DE', weight: '24000', label: 'Berlin ➔ Munich' },
-    { origin: 'Paris, FR', destination: 'Lyon, FR', weight: '32000', label: 'Paris ➔ Lyon' },
-    { origin: 'London, UK', destination: 'Manchester, UK', weight: '18000', label: 'London ➔ Manchester' },
-    { origin: 'Bucharest, RO', destination: 'Cluj-Napoca, RO', weight: '22000', label: 'Bucharest ➔ Cluj' },
+    { origin: 'Bucharest, RO', destination: 'Munich, DE', weight: '24000', label: 'Bucharest ➔ Munich' },
+    { origin: 'Iasi, RO', destination: 'Brussels, BE', weight: '32000', label: 'Iasi ➔ Brussels' },
+    { origin: 'Cluj-Napoca, RO', destination: 'Rome, IT', weight: '18000', label: 'Cluj ➔ Rome' },
+    { origin: 'Berlin, DE', destination: 'Brasov, RO', weight: '22000', label: 'Berlin ➔ Brasov' },
   ];
 
   const formData = controlledData ?? internalData;

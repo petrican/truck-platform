@@ -738,6 +738,7 @@
 .map-legend {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 14px;
   font-size: 0.78rem;
   color: #475569;
@@ -757,7 +758,63 @@
 
 .dot-low { background: #10b981; }
 .dot-moderate { background: #f59e0b; }
+.dot-high { background: #f97316; }
 .dot-severe { background: #ef4444; }
+
+.forecast-control {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px 16px;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  background: #f8fafc;
+}
+
+.forecast-control-heading,
+.forecast-control-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.forecast-control-heading label {
+  color: #334155;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.forecast-hour-value {
+  color: #1d4ed8;
+  font-size: 0.9rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.forecast-hour-slider {
+  width: 100%;
+  margin: 3px 0;
+  accent-color: #2563eb;
+  cursor: pointer;
+}
+
+.forecast-control-footer {
+  color: #64748b;
+  font-size: 0.72rem;
+}
+
+.forecast-valid-time {
+  color: #334155;
+  font-weight: 600;
+  text-align: center;
+}
+
+.forecast-data-note {
+  margin: 0;
+  color: #92400e;
+  font-size: 0.75rem;
+}
 
 /* Checkpoints Timeline */
 .timeline-filter {

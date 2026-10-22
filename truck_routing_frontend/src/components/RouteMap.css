@@ -118,6 +118,36 @@
   background: #ffffff !important;
 }
 
+.weather-checkpoint-tooltip {
+  padding: 0 !important;
+  border: 1px solid rgba(226, 232, 240, 0.95) !important;
+  border-radius: 10px !important;
+  background: rgba(255, 255, 255, 0.97) !important;
+  color: #334155 !important;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.16) !important;
+}
+
+.weather-checkpoint-tooltip::before {
+  border-top-color: #ffffff !important;
+}
+
+.weather-tooltip-card {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 205px;
+  padding: 10px 12px;
+  font-family: inherit;
+  font-size: 0.74rem;
+  line-height: 1.35;
+}
+
+.weather-tooltip-card strong {
+  margin-bottom: 2px;
+  color: #0f172a;
+  font-size: 0.78rem;
+}
+
 .marker-popup-card {
   padding: 6px 8px;
   font-family: inherit;

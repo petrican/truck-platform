@@ -7,6 +7,7 @@ import './RouteMap.css';
 interface RouteMapProps {
   routes: RouteItem[];
   selectedRouteIndex: number;
+  forecastHour: number;
   onSelectCheckpoint?: (checkpoint: Checkpoint) => void;
 }
 
@@ -29,11 +30,13 @@ const getRiskColor = (risk?: string): string => {
 export const RouteMap: React.FC<RouteMapProps> = ({
   routes,
   selectedRouteIndex,
+  forecastHour,
   onSelectCheckpoint,
 }) => {
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
   const layersGroupRef = useRef<L.LayerGroup | null>(null);
+  const lastFitRouteRef = useRef<RouteItem | null>(null);
 
   // Initialize Map
   useEffect(() => {
@@ -78,6 +81,14 @@ export const RouteMap: React.FC<RouteMapProps> = ({
     if (!routes || routes.length === 0) return;
 
     const activeRoute = routes.find((r) => r.route_index === selectedRouteIndex) || routes[0];
+    const activeCheckpoints = activeRoute.checkpoints.map((checkpoint) => {
+      const forecast = checkpoint.forecast?.[forecastHour];
+      return {
+        ...checkpoint,
+        weather: forecast?.weather ?? checkpoint.weather,
+        risk_level: forecast?.risk_level ?? checkpoint.risk_level,
+      };
+    });
     const allBounds: L.LatLngBounds = L.latLngBounds([]);
 
     // 1. Draw inactive routes first in the background
@@ -126,12 +137,61 @@ export const RouteMap: React.FC<RouteMapProps> = ({
       activeLatLngs.forEach((coord) => allBounds.extend(coord));
     }
 
+    const closestGeometryIndex = (checkpoint: Checkpoint): number => {
+      let closestIndex = 0;
+      let closestDistance = Number.POSITIVE_INFINITY;
+      activeLatLngs.forEach(([lat, lng], idx) => {
+        const distance = (lat - checkpoint.lat) ** 2 + (lng - checkpoint.lng) ** 2;
+        if (distance < closestDistance) {
+          closestDistance = distance;
+          closestIndex = idx;
+        }
+      });
+      return closestIndex;
+    };
+    activeCheckpoints.slice(0, -1).forEach((checkpoint, idx) => {
+      const nextCheckpoint = activeCheckpoints[idx + 1];
+      const startIndex = closestGeometryIndex(checkpoint);
+      const endIndex = closestGeometryIndex(nextCheckpoint);
+      const segment = activeLatLngs.slice(startIndex, endIndex + 1);
+      if (segment.length < 2) return;
+
+      layers.addLayer(L.polyline(
+        segment,
+        {
+          color: getRiskColor(checkpoint.risk_level),
+          weight: 6,
+          opacity: 0.95,
+          lineCap: 'round',
+        }
+      ));
+    });
+
     // 3. Draw Checkpoints along active route
-    if (activeRoute.checkpoints && activeRoute.checkpoints.length > 0) {
-      activeRoute.checkpoints.forEach((cp, idx) => {
+    if (activeCheckpoints.length > 0) {
+      activeCheckpoints.forEach((cp, idx) => {
         const isStart = idx === 0;
-        const isEnd = idx === activeRoute.checkpoints.length - 1;
+        const isEnd = idx === activeCheckpoints.length - 1;
         const color = getRiskColor(cp.risk_level);
+        const conditionText = cp.weather?.condition || (cp.weather?.rain_mm_hr && cp.weather.rain_mm_hr > 0 ? 'Rain showers' : 'Clear');
+        const tempDisplay = cp.weather?.temp_c !== null && cp.weather?.temp_c !== undefined
+          ? `${cp.weather.temp_c}°C (${cp.weather.temp_f}°F)`
+          : '--';
+        const windDisplay = cp.weather?.wind_kmh !== null && cp.weather?.wind_kmh !== undefined
+          ? `${cp.weather.wind_kmh} km/h (${cp.weather.wind_mph ?? '--'} mph)`
+          : `${cp.weather?.wind_mph ?? '--'} mph`;
+        const rainDisplay = cp.weather?.rain_mm_hr !== null && cp.weather?.rain_mm_hr !== undefined
+          ? `${cp.weather.rain_mm_hr} mm/h (${cp.weather.rain_in_hr ?? '--'} in/h)`
+          : `${cp.weather?.rain_in_hr ?? '--'} in/h`;
+        const checkpointTooltip = `
+          <div class="weather-tooltip-card">
+            <strong>${isStart ? 'Origin' : isEnd ? 'Destination' : `Checkpoint #${idx + 1}`} · Mile ${cp.distance_from_start_miles}</strong>
+            <span>${conditionText} · ${tempDisplay}</span>
+            <span>💨 Wind: ${windDisplay}</span>
+            <span>🌧 Precip: ${rainDisplay}${cp.weather?.snow_cm_hr ? ` · ❄ Snow: ${cp.weather.snow_cm_hr} cm/h` : ''}</span>
+            <span>Risk: ${cp.risk_level || 'Unknown'} · Forecast +${forecastHour} h</span>
+          </div>
+        `;
 
         if (isStart || isEnd) {
           // Special start / end icons
@@ -150,14 +210,31 @@ export const RouteMap: React.FC<RouteMapProps> = ({
           const marker = L.marker([cp.lat, cp.lng], { icon: customIcon });
           marker.bindPopup(`
             <div class="marker-popup-card">
-              <h4>${isStart ? 'Origin Departure' : 'Destination'}</h4>
-              <p><strong>ETA:</strong> ${cp.eta_formatted || 'Scheduled'}</p>
+                <h4>${isStart ? 'Origin Departure' : 'Destination'}</h4>
+                <p><strong>Forecast:</strong> +${forecastHour} h</p>
               <p><strong>Risk Level:</strong> <span class="badge-${(cp.risk_level || 'Low').toLowerCase().replace(' ', '-')}">${cp.risk_level || 'Low'}</span></p>
             </div>
           `);
+          marker.bindTooltip(checkpointTooltip, {
+            direction: 'top',
+            offset: [0, -12],
+            sticky: true,
+            opacity: 0.98,
+            className: 'weather-checkpoint-tooltip',
+          });
           layers.addLayer(marker);
         } else {
-          // Checkpoint circle marker
+          const heatHalo = L.circleMarker([cp.lat, cp.lng], {
+              radius: 17,
+              fillColor: color,
+              fillOpacity: 0.22,
+              color,
+              opacity: 0.15,
+              weight: 1,
+              interactive: false,
+          });
+          layers.addLayer(heatHalo);
+
           const circle = L.circleMarker([cp.lat, cp.lng], {
             radius: 6,
             fillColor: color,
@@ -166,24 +243,13 @@ export const RouteMap: React.FC<RouteMapProps> = ({
             weight: 2,
           });
 
-          const conditionText = cp.weather?.condition || (cp.weather?.rain_mm_hr && cp.weather.rain_mm_hr > 0 ? 'Rain showers' : 'Clear');
-          const tempDisplay = cp.weather?.temp_c !== null && cp.weather?.temp_c !== undefined
-            ? `${cp.weather.temp_c}°C (${cp.weather.temp_f}°F)`
-            : '--';
-          const windDisplay = cp.weather?.wind_kmh
-            ? `${cp.weather.wind_kmh} km/h (${cp.weather.wind_mph} mph)`
-            : `${cp.weather?.wind_mph ?? 0} mph`;
-          const rainDisplay = cp.weather?.rain_mm_hr
-            ? `${cp.weather.rain_mm_hr} mm/h (${cp.weather.rain_in_hr} in/h)`
-            : `${cp.weather?.rain_in_hr ?? 0} in/h`;
-
           circle.bindPopup(`
             <div class="marker-popup-card">
               <div class="popup-header">
                 <strong>Checkpoint #${idx + 1}</strong>
                 <span class="badge-risk badge-${(cp.risk_level || 'Low').toLowerCase().replace(' ', '-')}">${cp.risk_level || 'Low'}</span>
               </div>
-              <p class="popup-sub">Mile ${cp.distance_from_start_miles} • ${cp.eta_formatted || 'ETA'}</p>
+              <p class="popup-sub">Mile ${cp.distance_from_start_miles} • Forecast +${forecastHour} h</p>
               <div class="popup-condition-row">
                 <span class="condition-badge">🌤️ ${conditionText}</span>
                 <span class="temp-badge">${tempDisplay}</span>
@@ -200,6 +266,12 @@ export const RouteMap: React.FC<RouteMapProps> = ({
               </div>
             </div>
           `);
+          circle.bindTooltip(checkpointTooltip, {
+            direction: 'top',
+            sticky: true,
+            opacity: 0.98,
+            className: 'weather-checkpoint-tooltip',
+          });
 
           circle.on('click', () => {
             if (onSelectCheckpoint) onSelectCheckpoint(cp);
@@ -211,8 +283,9 @@ export const RouteMap: React.FC<RouteMapProps> = ({
     }
 
     // Zoom and pan to fit bounds nicely
-    if (allBounds.isValid()) {
+    if (allBounds.isValid() && lastFitRouteRef.current !== activeRoute) {
       map.fitBounds(allBounds, { padding: [50, 50], maxZoom: 12 });
+      lastFitRouteRef.current = activeRoute;
     }
 
     // Delayed resize trigger for smooth layout transition
@@ -221,14 +294,14 @@ export const RouteMap: React.FC<RouteMapProps> = ({
     }, 200);
 
     return () => clearTimeout(timeout);
-  }, [routes, selectedRouteIndex, onSelectCheckpoint]);
+  }, [routes, selectedRouteIndex, forecastHour, onSelectCheckpoint]);
 
   return (
     <div className="route-map-wrapper">
       <div className="route-map-inner" ref={mapContainerRef} />
       <div className="map-glass-badge">
         <span className="live-dot" />
-        <span>OSRM Live Waypoints & Weather Risk</span>
+        <span>Weather risk at +{forecastHour} h</span>
       </div>
     </div>
   );

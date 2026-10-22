@@ -63,11 +63,25 @@ export const RouteDisplay: React.FC<RouteDisplayProps> = ({
   onLoadDemo,
 }) => {
   const [selectedCheckpoint, setSelectedCheckpoint] = useState<Checkpoint | null>(null);
+  const [forecastHour, setForecastHour] = useState(0);
   const [filterSevereOnly, setFilterSevereOnly] = useState(false);
   const [copied, setCopied] = useState(false);
 
   // Active route
   const activeRoute = routes.find((r) => r.route_index === selectedRouteIndex) || routes[0];
+  const getForecastTime = (hour: number): string => {
+    if (!departureTime) return `+${hour} hours from departure`;
+    const departure = new Date(departureTime);
+    if (Number.isNaN(departure.getTime())) return `+${hour} hours from departure`;
+    const forecastTime = new Date(departure.getTime() + hour * 60 * 60 * 1000);
+    return forecastTime.toLocaleString(undefined, {
+      weekday: 'short',
+      month: 'short',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+    });
+  };
 
   const handleCopySummary = () => {
     if (!activeRoute) return;
@@ -205,9 +219,18 @@ export const RouteDisplay: React.FC<RouteDisplayProps> = ({
   // 4. Active Routes Rendered View
   const hours = Math.floor(activeRoute.duration_hours);
   const minutes = Math.round((activeRoute.duration_hours - hours) * 60);
+  const hasHourlyForecast = activeRoute.checkpoints.some((cp) => (cp.forecast?.length ?? 0) > 0);
+  const checkpointsAtForecastHour = activeRoute.checkpoints.map((cp) => {
+    const forecast = cp.forecast?.[forecastHour];
+    return {
+      ...cp,
+      weather: forecast?.weather ?? cp.weather,
+      risk_level: forecast?.risk_level ?? cp.risk_level,
+    };
+  });
   const checkpointsToDisplay = filterSevereOnly
-    ? activeRoute.checkpoints.filter((cp) => cp.risk_level && cp.risk_level !== 'Low')
-    : activeRoute.checkpoints;
+    ? checkpointsAtForecastHour.filter((cp) => cp.risk_level && cp.risk_level !== 'Low')
+    : checkpointsAtForecastHour;
 
   return (
     <div className="display-panel-wrapper">
@@ -376,19 +399,51 @@ export const RouteDisplay: React.FC<RouteDisplayProps> = ({
       <div className="map-section-container">
         <div className="section-title-row">
           <div>
-            <h3>Geospatial Route Telemetry</h3>
-            <p>Interactive vector path displaying sampled weather checkpoints every 25 miles.</p>
+            <h3>Weather Heatmap Along Corridor</h3>
+            <p>Forecast risk at each sampled waypoint for the selected hour after departure.</p>
           </div>
           <div className="map-legend">
-            <span className="legend-item"><span className="legend-dot dot-low" /> Low Risk</span>
+            <span className="legend-item"><span className="legend-dot dot-low" /> Low</span>
             <span className="legend-item"><span className="legend-dot dot-moderate" /> Moderate</span>
-            <span className="legend-item"><span className="legend-dot dot-severe" /> Severe / Storm</span>
+            <span className="legend-item"><span className="legend-dot dot-high" /> High</span>
+            <span className="legend-item"><span className="legend-dot dot-severe" /> Severe / No Travel</span>
           </div>
+        </div>
+
+        <div className="forecast-control">
+          <div className="forecast-control-heading">
+            <label htmlFor="forecast-hour">Forecast horizon</label>
+            <output htmlFor="forecast-hour" className="forecast-hour-value">
+              +{forecastHour} h
+            </output>
+          </div>
+          <input
+            id="forecast-hour"
+            className="forecast-hour-slider"
+            type="range"
+            min="0"
+            max="48"
+            step="1"
+            value={forecastHour}
+            onChange={(event) => setForecastHour(Number(event.target.value))}
+            aria-valuetext={`${forecastHour} hours after departure`}
+          />
+          <div className="forecast-control-footer">
+            <span>0 h · Departure</span>
+            <span className="forecast-valid-time">{getForecastTime(forecastHour)}</span>
+            <span>48 h</span>
+          </div>
+          {!hasHourlyForecast && (
+            <p className="forecast-data-note">
+              Demo route: showing static sample weather. Calculate a route to load hourly forecasts.
+            </p>
+          )}
         </div>
 
         <RouteMap
           routes={routes}
           selectedRouteIndex={activeRoute.route_index}
+          forecastHour={forecastHour}
           onSelectCheckpoint={(cp) => setSelectedCheckpoint(cp)}
         />
       </div>
@@ -401,10 +456,10 @@ export const RouteDisplay: React.FC<RouteDisplayProps> = ({
               <h3>Weather Checkpoint Timeline</h3>
               <span className="live-weather-sync-badge">
                 <span className="sync-pulse-dot" />
-                Open-Meteo Verified per Checkpoint ETA
+                {hasHourlyForecast ? `Open-Meteo · +${forecastHour} h` : 'Static demo weather'}
               </span>
             </div>
-            <p>Localized atmospheric conditions retrieved for vehicle arrival time along the corridor.</p>
+            <p>Localized conditions along the corridor at {getForecastTime(forecastHour)}.</p>
           </div>
           <div className="timeline-filter">
             <button
@@ -426,7 +481,7 @@ export const RouteDisplay: React.FC<RouteDisplayProps> = ({
 
         <div className="checkpoints-horizontal-scroll">
           {checkpointsToDisplay.map((cp, idx) => {
-            const isSelected = selectedCheckpoint === cp;
+            const isSelected = selectedCheckpoint?.lat === cp.lat && selectedCheckpoint?.lng === cp.lng;
             const windKmh = cp.weather?.wind_kmh ?? Math.round((cp.weather?.wind_mph || 0) * 1.6);
             const rainMm = cp.weather?.rain_mm_hr ?? Math.round((cp.weather?.rain_in_hr || 0) * 25.4 * 10) / 10;
             const condition = cp.weather?.condition || (rainMm > 0 ? 'Rain showers' : 'Clear sky');

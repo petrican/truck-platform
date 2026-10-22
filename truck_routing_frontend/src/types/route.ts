@@ -15,6 +15,13 @@ export interface WeatherInfo {
   condition?: string;
 }
 
+export interface WeatherForecastHour {
+  offset_hours: number;
+  valid_at: string;
+  weather: WeatherInfo;
+  risk_level: RiskLevel;
+}
+
 export interface Checkpoint {
   lat: number;
   lng: number;
@@ -22,6 +29,7 @@ export interface Checkpoint {
   eta_seconds_from_start?: number;
   eta_formatted?: string;
   weather?: WeatherInfo;
+  forecast?: WeatherForecastHour[];
   risk_level?: RiskLevel;
 }
 

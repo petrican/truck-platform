@@ -30,9 +30,13 @@ const CITY_COORDINATES: Record<string, [number, number]> = {
   'warsaw': [21.0122, 52.2297],
   'bucharest': [26.1025, 44.4268],
   'bucharest, ro': [26.1025, 44.4268],
+  'iasi': [27.6014, 47.1585],
+  'iasi, ro': [27.6014, 47.1585],
   'cluj': [23.6236, 46.7712],
   'cluj-napoca': [23.6236, 46.7712],
   'cluj-napoca, ro': [23.6236, 46.7712],
+  'brasov': [25.6012, 45.6579],
+  'brasov, ro': [25.6012, 45.6579],
   'timisoara': [21.2272, 45.7489],
   'madrid': [-3.7038, 40.4168],
   'barcelona': [2.1734, 41.3851],
@@ -211,7 +215,7 @@ export async function enrichRoutesWithLiveWeather(
           const loc = locationsData[idx] || locationsData[0];
           const hourly = loc?.hourly;
 
-          if (!hourly || !hourly.time) {
+          if (!hourly?.time?.length) {
             return cp;
           }
 
@@ -220,53 +224,63 @@ export async function enrichRoutesWithLiveWeather(
           const arrivalHourStr = arrivalTime.toISOString().slice(0, 13) + ':00';
 
           const times: string[] = hourly.time;
-          let hourIdx = times.indexOf(arrivalHourStr);
+          const nearestHourIndex = (target: Date): number => times.reduce((nearestIdx, timeStr, i) => {
+            const diffCurrent = Math.abs(new Date(`${timeStr}Z`).getTime() - target.getTime());
+            const diffNearest = Math.abs(new Date(`${times[nearestIdx]}Z`).getTime() - target.getTime());
+            return diffCurrent < diffNearest ? i : nearestIdx;
+          }, 0);
+          const weatherAt = (hourIdx: number) => {
+            const tempC = hourly.temperature_2m?.[hourIdx] ?? null;
+            const humidity = hourly.relative_humidity_2m?.[hourIdx] ?? null;
+            const weatherCode = hourly.weather_code?.[hourIdx] ?? null;
+            const windKmh = hourly.wind_speed_10m?.[hourIdx] ?? 0;
+            const rainMm = hourly.rain?.[hourIdx] ?? hourly.precipitation?.[hourIdx] ?? 0;
+            const snowfallCm = hourly.snowfall?.[hourIdx] ?? 0;
+            const windMph = Math.round((windKmh / 1.60934) * 10) / 10;
+            const rainInHr = Math.round((rainMm / 25.4) * 1000) / 1000;
+            const snowInHr = Math.round((snowfallCm / 2.54) * 100) / 100;
+            const condition = weatherCode !== null && WMO_WEATHER_MAP[weatherCode]
+              ? WMO_WEATHER_MAP[weatherCode].condition
+              : rainMm > 0 ? 'Rain showers' : 'Partly cloudy';
 
-          if (hourIdx === -1 && times.length > 0) {
-            // Find nearest hour
-            const arrivalMs = arrivalTime.getTime();
-            hourIdx = times.reduce((nearestIdx, timeStr, i) => {
-              const diffCurrent = Math.abs(new Date(timeStr + 'Z').getTime() - arrivalMs);
-              const diffNearest = Math.abs(new Date(times[nearestIdx] + 'Z').getTime() - arrivalMs);
-              return diffCurrent < diffNearest ? i : nearestIdx;
-            }, 0);
-          }
-
-          const tempC = hourly.temperature_2m?.[hourIdx] ?? null;
-          const humidity = hourly.relative_humidity_2m?.[hourIdx] ?? null;
-          const weatherCode = hourly.weather_code?.[hourIdx] ?? null;
-          const windKmh = hourly.wind_speed_10m?.[hourIdx] ?? 0;
-          const rainMm = hourly.rain?.[hourIdx] ?? hourly.precipitation?.[hourIdx] ?? 0;
-          const snowfallCm = hourly.snowfall?.[hourIdx] ?? 0;
-
-          const windMph = Math.round((windKmh / 1.60934) * 10) / 10;
-          const rainInHr = Math.round((rainMm / 25.4) * 1000) / 1000;
-          const snowInHr = Math.round((snowfallCm / 2.54) * 100) / 100;
-
-          const condition = weatherCode !== null && WMO_WEATHER_MAP[weatherCode]
-            ? WMO_WEATHER_MAP[weatherCode].condition
-            : rainMm > 0 ? 'Rain showers' : 'Partly cloudy';
-
-          const riskLevel = computeRiskLevel(windMph, rainInHr, snowInHr, loadWeightLbs, weatherCode);
+            return {
+              weather: {
+                available: true,
+                wind_mph: windMph,
+                wind_kmh: Math.round(windKmh * 10) / 10,
+                rain_in_hr: rainInHr,
+                rain_mm_hr: Math.round(rainMm * 100) / 100,
+                snow_in_hr: snowInHr,
+                snow_cm_hr: Math.round(snowfallCm * 100) / 100,
+                temp_c: tempC !== null ? Math.round(tempC * 10) / 10 : null,
+                temp_f: tempC !== null ? Math.round((tempC * 9 / 5 + 32) * 10) / 10 : null,
+                humidity: humidity !== null ? Math.round(humidity) : null,
+                weather_code: weatherCode,
+                condition,
+              },
+              riskLevel: computeRiskLevel(windMph, rainInHr, snowInHr, loadWeightLbs, weatherCode),
+            };
+          };
+          const etaIndex = times.indexOf(arrivalHourStr);
+          const hourIdx = etaIndex >= 0 ? etaIndex : nearestHourIndex(arrivalTime);
+          const forecast = Array.from({ length: 49 }, (_, offsetHours) => {
+            const validAt = new Date(departureDate.getTime() + offsetHours * 60 * 60 * 1000);
+            const sample = weatherAt(nearestHourIndex(validAt));
+            return {
+              offset_hours: offsetHours,
+              valid_at: validAt.toISOString(),
+              weather: sample.weather,
+              risk_level: sample.riskLevel,
+            };
+          });
+          const etaWeather = weatherAt(hourIdx);
 
           return {
             ...cp,
             eta_formatted: arrivalTime.toISOString().replace('T', ' ').slice(0, 16) + ' UTC',
-            weather: {
-              available: true,
-              wind_mph: windMph,
-              wind_kmh: Math.round(windKmh * 10) / 10,
-              rain_in_hr: rainInHr,
-              rain_mm_hr: Math.round(rainMm * 100) / 100,
-              snow_in_hr: snowInHr,
-              snow_cm_hr: Math.round(snowfallCm * 100) / 100,
-              temp_c: tempC !== null ? Math.round(tempC * 10) / 10 : null,
-              temp_f: tempC !== null ? Math.round((tempC * 9 / 5 + 32) * 10) / 10 : null,
-              humidity: humidity !== null ? Math.round(humidity) : null,
-              weather_code: weatherCode,
-              condition,
-            },
-            risk_level: riskLevel,
+            weather: etaWeather.weather,
+            forecast,
+            risk_level: etaWeather.riskLevel,
           };
         });
 
