@@ -1,15 +1,89 @@
 .layout-container {
   display: grid;
-  grid-template-columns: 1fr 3fr;
-  gap: 20px;
+  grid-template-columns: 380px 1fr;
   min-height: 100vh;
+  width: 100vw;
+  background-color: #f8fafc;
+  overflow: hidden;
 }
 
-.sidebard {
-  background-color: #f0f0f0;
+.sidebar {
+  background-color: #ffffff;
+  border-right: 1px solid #e2e8f0;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow-y: auto;
+  position: relative;
+  box-shadow: 4px 0 24px rgba(15, 23, 42, 0.02);
+  z-index: 10;
+}
+
+.sidebar-scroll-wrapper {
+  display: flex;
+  flex-direction: column;
 }
 
 .content {
-  background-color: #ffffff;
-  padding: 20px;
+  background-color: #f8fafc;
+  padding: 1.5rem 1.5rem;
+  height: 100vh;
+  overflow-y: auto;
+}
+
+/* Custom Scrollbars */
+.sidebar::-webkit-scrollbar,
+.content::-webkit-scrollbar,
+.checkpoints-horizontal-scroll::-webkit-scrollbar,
+.routes-tab-switcher::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.sidebar::-webkit-scrollbar-track,
+.content::-webkit-scrollbar-track,
+.checkpoints-horizontal-scroll::-webkit-scrollbar-track,
+.routes-tab-switcher::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.sidebar::-webkit-scrollbar-thumb,
+.content::-webkit-scrollbar-thumb,
+.checkpoints-horizontal-scroll::-webkit-scrollbar-thumb,
+.routes-tab-switcher::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 999px;
+}
+
+.sidebar::-webkit-scrollbar-thumb:hover,
+.content::-webkit-scrollbar-thumb:hover,
+.checkpoints-horizontal-scroll::-webkit-scrollbar-thumb:hover,
+.routes-tab-switcher::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1100px) {
+  .layout-container {
+    grid-template-columns: 380px 1fr;
+  }
+}
+
+@media (max-width: 900px) {
+  .layout-container {
+    grid-template-columns: 1fr;
+    height: auto;
+    overflow-y: auto;
+  }
+
+  .sidebar {
+    height: auto;
+    border-right: none;
+    border-bottom: 1px solid #e2e8f0;
+  }
+
+  .content {
+    height: auto;
+    padding: 1.5rem;
+  }
 }

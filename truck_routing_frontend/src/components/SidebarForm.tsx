@@ -1,36 +1,64 @@
-import React, { useState, type ChangeEvent, type SubmitEvent } from 'react';
+import { useState, type ChangeEvent, type FormEvent } from 'react';
+import type { ShipmentFormData } from '../types/route';
+import { Truck, MapPin, Calendar, Scale, Gauge, Loader2, Sparkles, ArrowRight } from 'lucide-react';
 import './SidebarForm.css';
 
-// Definim tipul de date pe care formularul îl colectează
-export interface ShipmentFormData {
-  origin: string;
-  destination: string;
-  departureTime: string;
-  weight: string;
-}
+export type { ShipmentFormData };
 
 interface SidebarFormProps {
   onSubmit?: (data: ShipmentFormData) => void;
+  loading?: boolean;
+  formData?: ShipmentFormData;
+  onChange?: (data: ShipmentFormData) => void;
+  onQuickPreset?: (origin: string, destination: string, weight: string) => void;
 }
 
-export default function SidebarForm({ onSubmit }: SidebarFormProps): React.JSX.Element {
-  const [formData, setFormData] = useState<ShipmentFormData>({
-    origin: '',
-    destination: '',
-    departureTime: '',
-    weight: '',
+const getDefaultDateTime = () => {
+  const now = new Date();
+  const offset = now.getTimezoneOffset() * 60000;
+  return new Date(now.getTime() - offset).toISOString().slice(0, 16);
+};
+
+export default function SidebarForm({
+  onSubmit,
+  loading = false,
+  formData: controlledData,
+  onChange: controlledOnChange,
+  onQuickPreset,
+}: SidebarFormProps): React.JSX.Element {
+  const [internalData, setInternalData] = useState<ShipmentFormData>({
+    origin: 'Berlin, DE',
+    destination: 'Munich, DE',
+    departureTime: getDefaultDateTime(),
+    weight: '24000',
+    weightUnit: 'lbs',
+    samplingMiles: 25,
   });
 
+  const presets = [
+    { origin: 'Bucharest, RO', destination: 'Munich, DE', weight: '24000', label: 'Bucharest ➔ Munich' },
+    { origin: 'Iasi, RO', destination: 'Brussels, BE', weight: '32000', label: 'Iasi ➔ Brussels' },
+    { origin: 'Cluj-Napoca, RO', destination: 'Rome, IT', weight: '18000', label: 'Cluj ➔ Rome' },
+    { origin: 'Berlin, DE', destination: 'Brasov, RO', weight: '22000', label: 'Berlin ➔ Brasov' },
+  ];
 
-  const handleChange = (e: ChangeEvent<HTMLInputElement>): void => {
+  const formData = controlledData ?? internalData;
+
+  const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement>): void => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    const updated = {
+      ...formData,
+      [name]: name === 'samplingMiles' ? Number(value) : value,
+    };
+
+    if (controlledOnChange) {
+      controlledOnChange(updated);
+    } else {
+      setInternalData(updated);
+    }
   };
 
-  const handleSubmit = (e: SubmitEvent<HTMLFormElement>): void => {
+  const handleSubmit = (e: FormEvent<HTMLFormElement>): void => {
     e.preventDefault();
     if (onSubmit) {
       onSubmit(formData);
@@ -41,16 +69,19 @@ export default function SidebarForm({ onSubmit }: SidebarFormProps): React.JSX.E
     <form className="sidebar-form" onSubmit={handleSubmit}>
       <div className="form-header">
         <h2>New Shipment</h2>
-        <p>Enter the transit details below</p>
+        <p></p>
       </div>
 
       <div className="form-group">
-        <label htmlFor="origin">Origin</label>
+        <label htmlFor="origin">
+          <MapPin size={12} />
+          <span>Origin Location</span>
+        </label>
         <input
           type="text"
           id="origin"
           name="origin"
-          placeholder="e.g. London, UK"
+          placeholder="e.g. Berlin, DE or 13.40,52.52"
           value={formData.origin}
           onChange={handleChange}
           required
@@ -58,12 +89,15 @@ export default function SidebarForm({ onSubmit }: SidebarFormProps): React.JSX.E
       </div>
 
       <div className="form-group">
-        <label htmlFor="destination">Destination</label>
+        <label htmlFor="destination">
+          <MapPin size={12} />
+          <span>Destination</span>
+        </label>
         <input
           type="text"
           id="destination"
           name="destination"
-          placeholder="e.g. Paris, FR"
+          placeholder="e.g. Munich, DE or 11.58,48.13"
           value={formData.destination}
           onChange={handleChange}
           required
@@ -71,7 +105,10 @@ export default function SidebarForm({ onSubmit }: SidebarFormProps): React.JSX.E
       </div>
 
       <div className="form-group">
-        <label htmlFor="departureTime">Departure Time</label>
+        <label htmlFor="departureTime">
+          <Calendar size={12} />
+          <span>Scheduled Departure</span>
+        </label>
         <input
           type="datetime-local"
           id="departureTime"
@@ -82,24 +119,87 @@ export default function SidebarForm({ onSubmit }: SidebarFormProps): React.JSX.E
         />
       </div>
 
-      <div className="form-group">
-        <label htmlFor="weight">Weight (kg)</label>
-        <input
-          type="number"
-          id="weight"
-          name="weight"
-          placeholder="0.00"
-          min="0"
-          step="0.01"
-          value={formData.weight}
-          onChange={handleChange}
-          required
-        />
+      <div className="form-row-dual">
+        <div className="form-group flex-1">
+          <label htmlFor="weight">
+            <Scale size={12} />
+            <span>Gross Weight</span>
+          </label>
+          <div className="input-with-unit">
+            <input
+              type="number"
+              id="weight"
+              name="weight"
+              placeholder="25000"
+              min="0"
+              step="1"
+              value={formData.weight}
+              onChange={handleChange}
+              required
+            />
+            <select
+              name="weightUnit"
+              value={formData.weightUnit || 'lbs'}
+              onChange={handleChange}
+              className="unit-select"
+            >
+              <option value="lbs">lbs</option>
+              <option value="kg">kg</option>
+            </select>
+          </div>
+        </div>
+
+        <div className="form-group sampling-group">
+          <label htmlFor="samplingMiles">
+            <Gauge size={12} />
+            <span>Weather Step</span>
+          </label>
+          <select
+            id="samplingMiles"
+            name="samplingMiles"
+            value={formData.samplingMiles || 25}
+            onChange={handleChange}
+            className="sampling-select"
+          >
+            <option value={10}>10 mi</option>
+            <option value={25}>25 mi</option>
+            <option value={50}>50 mi</option>
+          </select>
+        </div>
       </div>
 
-      <button type="submit" className="submit-btn">
-        Calculate Route
+      <button type="submit" className="submit-btn" disabled={loading}>
+        {loading ? (
+          <>
+            <Loader2 size={16} className="btn-spinner" />
+            <span>Computing Trajectories...</span>
+          </>
+        ) : (
+          <span>Calculate Route Alternatives</span>
+        )}
       </button>
+
+      {onQuickPreset && (
+        <div className="form-presets-section">
+          <div className="preset-label">
+            <Sparkles size={13} />
+            <span>Quick Corridor Presets</span>
+          </div>
+          <div className="presets-list">
+            {presets.map((p) => (
+              <button
+                key={p.label}
+                type="button"
+                className="preset-pill-btn"
+                onClick={() => onQuickPreset(p.origin, p.destination, p.weight)}
+              >
+                <span>{p.label}</span>
+                <ArrowRight size={12} />
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
     </form>
   );
 }

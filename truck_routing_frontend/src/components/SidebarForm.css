@@ -5,28 +5,50 @@
   --border-color: #e2e8f0;
   --text-main: #334155;
   --text-muted: #64748b;
-  --accent-glow: rgba(15, 23, 42, 0.08);
+  --accent-glow: rgba(37, 99, 235, 0.12);
+  --accent-color: #2563eb;
 }
 
 .sidebar-form {
   display: flex;
   flex-direction: column;
-  gap: 24px;
-  font-family: system-ui, -apple-system, sans-serif;
+  gap: 18px;
+  font-family: inherit;
   color: var(--text-main);
-  padding: 2rem;
+  padding: 1.75rem;
+  background: #ffffff;
+}
+
+.form-header {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.form-title-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #eff6ff;
+  color: #2563eb;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  width: fit-content;
+  margin-bottom: 4px;
 }
 
 .form-header h2 {
   font-size: 1.35rem;
-  font-weight: 600;
-  margin: 0 0 6px 0;
+  font-weight: 800;
+  margin: 0;
   color: var(--primary-color);
   letter-spacing: -0.02em;
 }
 
 .form-header p {
-  font-size: 0.875rem;
+  font-size: 0.82rem;
   color: var(--text-muted);
   margin: 0;
 }
@@ -34,68 +56,181 @@
 .form-group {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
 }
 
 .form-group label {
-  font-size: 0.8rem;
-  font-weight: 550;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.74rem;
+  font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   color: var(--text-muted);
 }
 
-.form-group input {
+.form-group input,
+.form-group select {
   width: 100%;
-  padding: 12px 16px;
-  font-size: 0.95rem;
+  padding: 11px 14px;
+  font-size: 0.92rem;
   background-color: var(--bg-input);
   border: 1px solid var(--border-color);
-  border-radius: 12px; /* Margini rotunjite moderne */
+  border-radius: 12px;
   color: var(--primary-color);
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); /* Animație smooth */
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   outline: none;
+  font-family: inherit;
 }
 
-/* Micro-interacțiuni pentru stările de focus și hover */
-.form-group input:hover {
+.form-group input:hover,
+.form-group select:hover {
   border-color: #cbd5e1;
 }
 
-.form-group input:focus {
-  border-color: var(--primary-color);
+.form-group input:focus,
+.form-group select:focus {
+  border-color: var(--accent-color);
   background-color: #ffffff;
   box-shadow: 0 0 0 4px var(--accent-glow);
 }
 
-/* Personalizare discretă pentru input-ul de tip dată */
-.form-group input[type="datetime-local"] {
-  font-family: inherit;
+.form-row-dual {
+  display: flex;
+  gap: 10px;
+}
+
+.flex-1 {
+  flex: 1;
+}
+
+.sampling-group {
+  width: 120px;
+  flex-shrink: 0;
+}
+
+.input-with-unit {
+  display: flex;
+  position: relative;
+  max-width:175px;
+}
+
+.input-with-unit input {
+  padding-right: 54px;
+}
+
+.unit-select {
+  position: absolute;
+  right: 4px;
+  top: 4px;
+  bottom: 4px;
+  width: auto !important;
+  background: #f1f5f9 !important;
+  border: none !important;
+  border-radius: 8px !important;
+  padding: 0 8px !important;
+  font-size: 0.78rem !important;
+  font-weight: 700 !important;
+  color: #475569 !important;
   cursor: pointer;
 }
 
-/* Butonul de trimitere */
+.sampling-select {
+  cursor: pointer;
+}
+
+/* Submit button with 2026 feel */
 .submit-btn {
-  margin-top: 8px;
-  padding: 14px;
+  margin-top: 6px;
+  padding: 14px 18px;
   font-size: 0.95rem;
-  font-weight: 600;
+  font-weight: 700;
   color: #ffffff;
-  background-color: var(--primary-color);
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
   border: none;
   border-radius: 12px;
   cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.15);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
 }
 
-.submit-btn:hover {
-  background-color: var(--primary-hover);
+.submit-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
   transform: translateY(-1px);
-  box-shadow: 0 6px 16px rgba(15, 23, 42, 0.2);
+  box-shadow: 0 6px 20px rgba(15, 23, 42, 0.22);
 }
 
-.submit-btn:active {
+.submit-btn:active:not(:disabled) {
   transform: translateY(1px);
   box-shadow: 0 2px 6px rgba(15, 23, 42, 0.1);
+}
+
+.submit-btn:disabled {
+  opacity: 0.75;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn-spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Presets inside form */
+.form-presets-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 8px;
+  padding-top: 14px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.preset-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+}
+
+.presets-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.preset-pill-btn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: var(--bg-input);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-main);
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.preset-pill-btn:hover {
+  background: #ffffff;
+  border-color: var(--accent-color);
+  color: var(--accent-color);
+  transform: translateX(3px);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.08);
 }
