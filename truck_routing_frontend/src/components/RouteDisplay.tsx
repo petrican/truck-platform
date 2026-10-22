@@ -122,7 +122,7 @@ export const RouteDisplay: React.FC<RouteDisplayProps> = ({
             <div className="radar-sweep" />
             <div className="radar-core" />
           </div>
-          <h2>Synthesizing Optimal Freight Trajectories</h2>
+          <h2>Synthesizing Optimal Trajectories</h2>
           <p className="loading-subtext">
             Consulting OSRM road infrastructure & querying Open-Meteo multi-checkpoint weather telemetry...
           </p>
@@ -157,9 +157,9 @@ export const RouteDisplay: React.FC<RouteDisplayProps> = ({
           <div className="welcome-header">
             <div className="status-live-chip">
               <span className="ping-dot" />
-              <span>Fleet Telemetry Core • 2026 Edition</span>
+              <span>&copy; 2026 - PN</span>
             </div>
-            <h1>Smart Truck Routing & Weather Hazard System</h1>
+            <h1>Weather-Aware Truck Routing</h1>
             <p className="welcome-lead">
               Precision transit planning powered by OpenStreetMap routing protocols and real-time checkpoint meteorological forecasting.
             </p>
@@ -196,12 +196,6 @@ export const RouteDisplay: React.FC<RouteDisplayProps> = ({
               <Info size={16} />
               <span>Configure your cargo details on the left sidebar to generate live routing analytics.</span>
             </div>
-            {onLoadDemo && (
-              <button type="button" className="cta-quick-demo" onClick={onLoadDemo}>
-                <Sparkles size={15} />
-                Preview Sample Route
-              </button>
-            )}
           </div>
         </div>
       </div>
