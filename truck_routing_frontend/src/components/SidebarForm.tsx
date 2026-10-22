@@ -1,6 +1,6 @@
 import { useState, type ChangeEvent, type FormEvent } from 'react';
 import type { ShipmentFormData } from '../types/route';
-import { Truck, MapPin, Calendar, Scale, Gauge, Loader2, Sparkles, ArrowRight } from 'lucide-react';
+import { MapPin, Calendar, Scale, Gauge, Loader2, Sparkles, ArrowRight } from 'lucide-react';
 import './SidebarForm.css';
 
 export type { ShipmentFormData };

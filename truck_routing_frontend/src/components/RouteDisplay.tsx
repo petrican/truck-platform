@@ -11,9 +11,6 @@ import {
   CloudRain,
   Snowflake,
   ShieldCheck,
-  Check,
-  Download,
-  Copy,
   ChevronRight,
   Info,
   Thermometer,
@@ -65,7 +62,6 @@ export const RouteDisplay: React.FC<RouteDisplayProps> = ({
   const [selectedCheckpoint, setSelectedCheckpoint] = useState<Checkpoint | null>(null);
   const [forecastHour, setForecastHour] = useState(0);
   const [filterSevereOnly, setFilterSevereOnly] = useState(false);
-  const [copied, setCopied] = useState(false);
 
   // Active route
   const activeRoute = routes.find((r) => r.route_index === selectedRouteIndex) || routes[0];
@@ -81,25 +77,6 @@ export const RouteDisplay: React.FC<RouteDisplayProps> = ({
       hour: 'numeric',
       minute: '2-digit',
     });
-  };
-
-  const handleCopySummary = () => {
-    if (!activeRoute) return;
-    const text = `Truck Route #${activeRoute.route_index}: ${origin || 'Origin'} -> ${destination || 'Destination'} | Distance: ${activeRoute.distance_km} km (${activeRoute.distance_miles} mi) | Duration: ${activeRoute.duration_hours} hrs | Risk Level: ${activeRoute.risk_summary.max_risk_level}`;
-    navigator.clipboard.writeText(text);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
-
-  const handleExportJson = () => {
-    if (!activeRoute) return;
-    const blob = new Blob([JSON.stringify(activeRoute, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `route-${activeRoute.route_index}-manifest.json`;
-    a.click();
-    URL.revokeObjectURL(url);
   };
 
   // 1. Error State
