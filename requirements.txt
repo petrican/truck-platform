@@ -4,6 +4,8 @@ charset-normalizer==3.5.2
 Django==6.1.2
 django-cors-headers==4.9.0
 djangorestframework==3.18.3
+geographiclib==2.1
+geopy==2.5.0
 idna==3.20
 requests==2.34.2
 sqlparse==0.6.0
