@@ -79,7 +79,7 @@ class OSRMRouteView(APIView):
         params = {
             "overview": "full",
             "geometries": "geojson",
-            "alternatives": "3",
+            "alternatives": "4",
             "steps": "true",
         }
 
