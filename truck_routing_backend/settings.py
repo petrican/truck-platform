@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-15alt0+td0pxw^rf%6qvntu4qeatz7rj*0&yk!o#oxp(=*6@0s
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['truck.nanca.ro', '127.0.0.1', 'localhost']
 
 
 # Application definition
